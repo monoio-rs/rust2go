@@ -1,8 +1,8 @@
 [package]
-name = "rust2go-cli"
-version = "0.3.6"
+name = "monoio-rust2go-cli"
+version = "0.3.0"
 
-description = "Rust2go commandline tool."
+description = "Monoio Rust2go commandline tool."
 
 authors.workspace = true
 categories.workspace = true
@@ -12,11 +12,11 @@ license.workspace = true
 repository.workspace = true
 
 [dependencies]
-rust2go-common = { version = "0.3.6", path = "../rust2go-common" }
+monoio-rust2go-common = { version = "0.3.0", path = "../monoio-rust2go-common" }
 
 clap = { version = "4", features = ["derive"] }
 cbindgen = { version = "0.26", default-features = false }
 
 [[bin]]
-name = "rust2go-cli"
+name = "monoio-rust2go-cli"
 path = "src/main.rs"

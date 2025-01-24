@@ -1,6 +1,6 @@
+use monoio_rust2go_common::{raw_file::TraitRepr, sbail};
 use proc_macro::TokenStream;
 use quote::{format_ident, quote};
-use rust2go_common::{raw_file::TraitRepr, sbail};
 use syn::{parse_macro_input, DeriveInput, Ident};
 
 #[proc_macro_derive(R2G)]
@@ -31,10 +31,10 @@ pub fn r2g_derive(input: TokenStream) -> TokenStream {
         };
         match first_seg.ident.to_string().as_str() {
             "Vec" => {
-                ref_fields.push(quote! {#name: ::rust2go::ListRef});
+                ref_fields.push(quote! {#name: ::monoio_rust2go::ListRef});
             }
             "String" => {
-                ref_fields.push(quote! {#name: ::rust2go::StringRef});
+                ref_fields.push(quote! {#name: ::monoio_rust2go::StringRef});
             }
             "i8" | "i16" | "i32" | "i64" | "isize" | "u8" | "u16" | "u32" | "u64" | "usize"
             | "f32" | "f64" | "bool" | "char" => {
@@ -60,29 +60,29 @@ pub fn r2g_derive(input: TokenStream) -> TokenStream {
             #(#ref_fields),*
         }
 
-        impl ::rust2go::ToRef for #type_name {
-            const MEM_TYPE: ::rust2go::MemType = ::rust2go::max_mem_type!(#(#owned_types),*);
+        impl ::monoio_rust2go::ToRef for #type_name {
+            const MEM_TYPE: ::monoio_rust2go::MemType = ::monoio_rust2go::max_mem_type!(#(#owned_types),*);
             type Ref = #ref_type_name;
 
             fn to_size(&self, acc: &mut usize) {
-                if matches!(Self::MEM_TYPE, ::rust2go::MemType::Complex) {
+                if matches!(Self::MEM_TYPE, ::monoio_rust2go::MemType::Complex) {
                     #(self.#owned_names.to_size(acc);)*
                 }
             }
 
-            fn to_ref(&self, buffer: &mut ::rust2go::Writer) -> Self::Ref {
+            fn to_ref(&self, buffer: &mut ::monoio_rust2go::Writer) -> Self::Ref {
                 #ref_type_name {
-                    #(#owned_names: ::rust2go::ToRef::to_ref(&self.#owned_names, buffer),)*
+                    #(#owned_names: ::monoio_rust2go::ToRef::to_ref(&self.#owned_names, buffer),)*
                 }
             }
         }
 
-        impl ::rust2go::FromRef for #type_name {
+        impl ::monoio_rust2go::FromRef for #type_name {
             type Ref = #ref_type_name;
 
             fn from_ref(ref_: &Self::Ref) -> Self {
                 Self {
-                    #(#owned_names: ::rust2go::FromRef::from_ref(&ref_.#owned_names),)*
+                    #(#owned_names: ::monoio_rust2go::FromRef::from_ref(&ref_.#owned_names),)*
                 }
             }
         }

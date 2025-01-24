@@ -10,7 +10,7 @@ pub use slot::{new_atomic_slot, SlotReader, SlotWriter};
 mod future;
 pub use future::{ResponseFuture, ResponseFutureWithoutReq};
 
-pub use rust2go_macro::{r2g, R2G};
+pub use monoio_rust2go_macro::{r2g, R2G};
 
 pub const DEFAULT_BINDING_FILE: &str = "_go_bindings.rs";
 #[macro_export]
@@ -28,4 +28,4 @@ mod build;
 #[cfg(feature = "build")]
 pub use build::{Builder, CopyLib, LinkType};
 #[cfg(feature = "build")]
-pub use rust2go_cli::Args as RegenArgs;
+pub use monoio_rust2go_cli::Args as RegenArgs;

@@ -4,7 +4,7 @@ use std::{
     process::Command,
 };
 
-use rust2go_cli::Args;
+use monoio_rust2go_cli::Args;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum LinkType {
@@ -111,7 +111,7 @@ impl Builder<PathBuf> {
             .unwrap_or(crate::DEFAULT_BINDING_FILE);
         // Regenerate go code.
         if !self.regen_arg.src.is_empty() && !self.regen_arg.dst.is_empty() {
-            rust2go_cli::generate(&self.regen_arg);
+            monoio_rust2go_cli::generate(&self.regen_arg);
         }
         Self::build_go(&self.go_src, binding_name, self.link, &self.copy_lib);
     }

@@ -1,8 +1,8 @@
 [package]
-name = "rust2go"
-version = "0.3.7"
+name = "monoio-rust2go"
+version = "0.3.0"
 
-description = "Rust2go main shared library."
+description = "Monoio Rust2go main shared library."
 
 authors.workspace = true
 categories.workspace = true
@@ -12,13 +12,12 @@ license.workspace = true
 repository.workspace = true
 
 [dependencies]
-rust2go-macro = { version = "0.3.4", path = "../rust2go-macro" }
-
-rust2go-cli = { version = "0.3.4", path = "../rust2go-cli", optional = true }
+monoio-rust2go-macro = { version = "0.3.0", path = "../monoio-rust2go-macro" }
+monoio-rust2go-cli = { version = "0.3.0", path = "../monoio-rust2go-cli", optional = true }
 
 bindgen = { version = "0.69", optional = true }
 syn = { version = "2", features = ["full"], optional = true }
 
 [features]
 default = []
-build = ["syn", "bindgen", "rust2go-cli"]
+build = ["syn", "bindgen", "monoio-rust2go-cli"]

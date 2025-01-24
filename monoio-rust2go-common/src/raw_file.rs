@@ -1184,7 +1184,7 @@ inline void {fn_name}_cb(const void *f_ptr, {c_resp_type} resp, const void *slot
         let func_param_types: Vec<_> = self.params.iter().map(|p| &p.ty).collect();
         let unsafe_marker = (!self.safe).then(syn::token::Unsafe::default);
         out.extend(quote! {
-            #unsafe_marker fn #func_name(#(#func_param_names: #func_param_types)*)
+            #unsafe_marker fn #func_name(#(#func_param_names: #func_param_types),*)
         });
 
         let ref_marks = self.params.iter().map(|p| {
@@ -1199,13 +1199,13 @@ inline void {fn_name}_cb(const void *f_ptr, {c_resp_type} resp, const void *slot
             (true, None) => sbail!("async function must have a return value"),
             (false, None) => {
                 // fn demo_check(r: user::DemoRequest) {
-                //     let (_buf, r) = ::rust2go::ToRef::calc_ref(&r);
+                //     let (_buf, r) = ::monoio_rust2go::ToRef::calc_ref(&r);
                 //     unsafe {binding::CDemoCall_demo_check(::std::mem::transmute(r))}
                 // }
                 out.extend(quote! {
                     {
                         #(
-                            let (_buf, #func_param_names) = ::rust2go::ToRef::calc_ref(#ref_marks #func_param_names);
+                            let (_buf, #func_param_names) = ::monoio_rust2go::ToRef::calc_ref(#ref_marks #func_param_names);
                         )*
                         #[allow(clippy::useless_transmute)]
                         unsafe {#path_prefix #c_func_name(#(::std::mem::transmute(#func_param_names)),*)}
@@ -1215,7 +1215,7 @@ inline void {fn_name}_cb(const void *f_ptr, {c_resp_type} resp, const void *slot
             (false, Some(ret)) => {
                 // fn demo_check(r: user::DemoRequest) -> user::DemoResponse {
                 //     let mut slot = None;
-                //     let (_buf, r) = ::rust2go::ToRef::calc_ref(&r);
+                //     let (_buf, r) = ::monoio_rust2go::ToRef::calc_ref(&r);
                 //     unsafe { binding::CDemoCall_demo_check(
                 //         ::std::mem::transmute(r),
                 //         &slot as *const _ as *const () as *mut _,
@@ -1228,7 +1228,7 @@ inline void {fn_name}_cb(const void *f_ptr, {c_resp_type} resp, const void *slot
                     -> #ret {
                         let mut slot = None;
                         #(
-                            let (_buf, #func_param_names) = ::rust2go::ToRef::calc_ref(#ref_marks #func_param_names);
+                            let (_buf, #func_param_names) = ::monoio_rust2go::ToRef::calc_ref(#ref_marks #func_param_names);
                         )*
                         #[allow(clippy::useless_transmute)]
                         unsafe { #path_prefix #c_func_name(#(::std::mem::transmute(#func_param_names)),*, &slot as *const _ as *const () as *mut _, Self::#callback_name as *const () as *mut _) };
@@ -1240,7 +1240,7 @@ inline void {fn_name}_cb(const void *f_ptr, {c_resp_type} resp, const void *slot
                 // fn demo_check_async(
                 //     req: user::DemoRequest,
                 // ) -> impl std::future::Future<Output = user::DemoResponse> {
-                //     ::rust2go::ResponseFuture::Init(
+                //     ::monoio_rust2go::ResponseFuture::Init(
                 //         |r_ref: <(user::DemoRequest,) as ToRef>::Ref, slot: *const (), cb: *const ()| {
                 //             unsafe {
                 //                 binding::CDemoCall_demo_check_async(
@@ -1257,8 +1257,8 @@ inline void {fn_name}_cb(const void *f_ptr, {c_resp_type} resp, const void *slot
                 let len = self.params.len();
                 let tuple_ids = (0..len).map(syn::Index::from);
                 let new_fn = match self.drop_safe_ret_params {
-                    false => quote! {::rust2go::ResponseFuture::new_without_req},
-                    true => quote! {::rust2go::ResponseFuture::new},
+                    false => quote! {::monoio_rust2go::ResponseFuture::new_without_req},
+                    true => quote! {::monoio_rust2go::ResponseFuture::new},
                 };
                 let ret = match self.drop_safe_ret_params {
                     false => quote! { #ret },
@@ -1267,7 +1267,7 @@ inline void {fn_name}_cb(const void *f_ptr, {c_resp_type} resp, const void *slot
                 out.extend(quote! {
                     -> impl ::std::future::Future<Output = #ret> {
                     #new_fn(
-                        |r_ref: <(#(#func_param_types,)*) as ::rust2go::ToRef>::Ref, slot: *const (), cb: *const ()| {
+                        |r_ref: <(#(#func_param_types,)*) as ::monoio_rust2go::ToRef>::Ref, slot: *const (), cb: *const ()| {
                             #[allow(clippy::useless_transmute)]
                             unsafe {
                                 #path_prefix #c_func_name(
@@ -1299,14 +1299,14 @@ inline void {fn_name}_cb(const void *f_ptr, {c_resp_type} resp, const void *slot
             (false, Some(ret)) => {
                 // #[no_mangle]
                 // unsafe extern "C" fn demo_check_cb(resp: binding::DemoResponseRef, slot: *const ()) {
-                //     *(slot as *mut Option<DemoResponse>) = Some(::rust2go::FromRef::from_ref(::std::mem::transmute(&resp)));
+                //     *(slot as *mut Option<DemoResponse>) = Some(::monoio_rust2go::FromRef::from_ref(::std::mem::transmute(&resp)));
                 // }
                 let resp_ref_ty = ret.to_rust_ref(Some(path_prefix));
                 Ok(quote! {
                     #[allow(clippy::useless_transmute)]
                     #[no_mangle]
                     unsafe extern "C" fn #fn_name(resp: #resp_ref_ty, slot: *const ()) {
-                        *(slot as *mut Option<#ret>) = Some(::rust2go::FromRef::from_ref(::std::mem::transmute(&resp)));
+                        *(slot as *mut Option<#ret>) = Some(::monoio_rust2go::FromRef::from_ref(::std::mem::transmute(&resp)));
                     }
                 })
             }
@@ -1316,7 +1316,7 @@ inline void {fn_name}_cb(const void *f_ptr, {c_resp_type} resp, const void *slot
                 //     resp: binding::DemoResponseRef,
                 //     slot: *const (),
                 // ) {
-                //     ::rust2go::SlotWriter::<DemoResponse>::from_ptr(slot).write(::rust2go::FromRef::from_ref(::std::mem::transmute(&resp)));
+                //     ::monoio_rust2go::SlotWriter::<DemoResponse>::from_ptr(slot).write(::monoio_rust2go::FromRef::from_ref(::std::mem::transmute(&resp)));
                 // }
                 let resp_ref_ty = ret.to_rust_ref(Some(path_prefix));
                 let func_param_types = self.params.iter().map(|p| &p.ty);
@@ -1324,7 +1324,7 @@ inline void {fn_name}_cb(const void *f_ptr, {c_resp_type} resp, const void *slot
                     #[allow(clippy::useless_transmute)]
                     #[no_mangle]
                     unsafe extern "C" fn #fn_name(resp: #resp_ref_ty, slot: *const ()) {
-                        ::rust2go::SlotWriter::<#ret, ((#(#func_param_types,)*), Vec<u8>)>::from_ptr(slot).write(::rust2go::FromRef::from_ref(::std::mem::transmute(&resp)));
+                        ::monoio_rust2go::SlotWriter::<#ret, ((#(#func_param_types,)*), Vec<u8>)>::from_ptr(slot).write(::monoio_rust2go::FromRef::from_ref(::std::mem::transmute(&resp)));
                     }
                 })
             }

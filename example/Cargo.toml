@@ -5,11 +5,11 @@ edition = "2021"
 publish = false
 
 [dependencies]
-rust2go = { path = "../rust2go" }
+monoio-rust2go = { path = "../monoio-rust2go" }
 monoio = { version = "0.2", features = ["sync"] }
 
 [build-dependencies]
-rust2go = { path = "../rust2go", features = ["build"] }
+monoio-rust2go = { path = "../monoio-rust2go", features = ["build"] }
 
 [[bin]]
 name = "example"
